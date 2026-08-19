@@ -4,7 +4,7 @@ export function toEnglishDigits(value: string | number | null | undefined): stri
   const fa = "۰۱۲۳۴۵۶۷۸۹";
   const ar = "٠١٢٣٤٥٦٧٨٩";
   for (let i = 0; i < 10; i++) {
-    text = text.split(fa[i]).join(String(i)).split(ar[i]).join(String(i));
+    text = text.split(fa[i]!).join(String(i)).split(ar[i]!).join(String(i));
   }
   return text;
 }
@@ -42,7 +42,7 @@ function gregorianToJalali(gy: number, gm: number, gd: number) {
     Math.floor((gy2 + 399) / 400) -
     80 +
     gd +
-    gdm[gm - 1];
+    (gdm[gm - 1] ?? 0);
   jy += 33 * Math.floor(days / 12053);
   days %= 12053;
   jy += 4 * Math.floor(days / 1461);
