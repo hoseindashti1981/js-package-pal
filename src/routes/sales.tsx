@@ -1,0 +1,131 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { AppShell, EmptyState } from "@/components/AppShell";
+import type { SalesInvoice, SalesInvoiceItem } from "@/lib/db";
+import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
+import { useCustomers, useProducts, useRemove, useSales, useSave } from "@/lib/queries";
+
+export const Route = createFileRoute("/sales")({
+  head: () => ({
+    meta: [
+      { title: "فاکتور فروش — پکیج‌یار" },
+      { name: "description", content: "صدور فاکتور فروش قطعات، ثبت مبلغ دریافتی و مشاهده فاکتورهای گذشته." },
+      { property: "og:title", content: "فاکتور فروش — پکیج‌یار" },
+      { property: "og:description", content: "صدور و مدیریت فاکتورهای فروش." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "/sales" },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "/sales" }],
+  }),
+  component: SalesPage,
+});
+
+function SalesPage() {
+  const customers = useCustomers().data ?? [];
+  const products = useProducts().data ?? [];
+  const { data: invoices = [] } = useSales();
+  const save = useSave<SalesInvoice>("salesInvoices");
+  const remove = useRemove("salesInvoices");
+
+  const [open, setOpen] = useState(false);
+  const [customerId, setCustomerId] = useState<number | null>(null);
+  const [paid, setPaid] = useState(0);
+  const [items, setItems] = useState<SalesInvoiceItem[]>([]);
+
+  const total = items.reduce((a, i) => a + i.qty * i.price, 0);
+
+  const addProduct = (productId: number) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    setItems((prev) => [...prev, { productId, name: product.name, qty: 1, price: product.sellPrice || 0 }]);
+  };
+
+  const submit = () => {
+    if (items.length === 0) return;
+    save.mutate({ customerId, date: todayJalali(), items, total, paid });
+    setItems([]);
+    setPaid(0);
+    setCustomerId(null);
+    setOpen(false);
+  };
+
+  return (
+    <AppShell
+      title="فروش"
+      subtitle={`${formatNumber(invoices.length)} فاکتور`}
+      action={
+        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+          {open ? "بستن" : "+ فاکتور جدید"}
+        </button>
+      }
+    >
+      {open ? (
+        <div className="py-card mb-4 space-y-2 p-4">
+          <select className="py-field" value={customerId ?? 0} onChange={(e) => setCustomerId(Number(e.target.value) || null)}>
+            <option value={0}>مشتری متفرقه</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          <select className="py-field" value={0} onChange={(e) => addProduct(Number(e.target.value))}>
+            <option value={0}>+ افزودن کالا به فاکتور…</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center gap-2 rounded-md bg-muted p-2 text-xs">
+              <span className="flex-1">{item.name}</span>
+              <input
+                className="py-field w-16 py-1"
+                inputMode="numeric"
+                value={item.qty}
+                onChange={(e) =>
+                  setItems((prev) => prev.map((it, i) => (i === index ? { ...it, qty: parseNumber(e.target.value) } : it)))
+                }
+              />
+              <input
+                className="py-field w-24 py-1"
+                inputMode="numeric"
+                value={item.price}
+                onChange={(e) =>
+                  setItems((prev) => prev.map((it, i) => (i === index ? { ...it, price: parseNumber(e.target.value) } : it)))
+                }
+              />
+              <button onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}>✕</button>
+            </div>
+          ))}
+
+          <div className="flex items-center justify-between text-sm font-bold">
+            <span>جمع کل</span>
+            <span>{formatMoney(total)}</span>
+          </div>
+          <input className="py-field" inputMode="numeric" placeholder="مبلغ دریافتی" onChange={(e) => setPaid(parseNumber(e.target.value))} />
+          <button className="py-btn w-full" onClick={submit}>ثبت فاکتور</button>
+        </div>
+      ) : null}
+
+      {invoices.length === 0 ? (
+        <EmptyState text="هنوز فاکتور فروشی ثبت نشده است." />
+      ) : (
+        <div className="py-card divide-y divide-border">
+          {[...invoices].reverse().map((inv) => (
+            <div key={inv.id} className="space-y-1 p-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{customers.find((c) => c.id === inv.customerId)?.name ?? "مشتری متفرقه"}</span>
+                <span className="text-xs text-muted-foreground">{inv.date}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span>{formatMoney(inv.total)} · دریافتی {formatMoney(inv.paid)}</span>
+                <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </AppShell>
+  );
+}
