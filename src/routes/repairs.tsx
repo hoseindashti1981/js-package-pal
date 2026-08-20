@@ -28,13 +28,15 @@ const STATUS: Record<Repair["status"], string> = {
 };
 
 function emptyRepair(): Repair {
-  return { customerId: 0, deviceId: null, date: todayJalali(), problem: "", action: "", wage: 0, partsCost: 0, status: "open" };
+  return { customerId: 0, deviceId: null, date: todayJalali(), problem: "", action: "", wage: 0, partsCost: 0, usedParts: [], status: "open" };
 }
 
 function RepairsPage() {
   const customers = useCustomers().data ?? [];
+  const products = useProducts().data ?? [];
   const { data: repairs = [] } = useRepairs();
   const save = useSave<Repair>("repairs");
+  const saveProduct = useSave<Product>("products");
   const remove = useRemove("repairs");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Repair>(emptyRepair);
