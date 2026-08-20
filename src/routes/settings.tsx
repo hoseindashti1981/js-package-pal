@@ -67,8 +67,8 @@ function SettingsPage() {
       if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("|")) continue;
       const parts = trimmed.split("|").map((p) => p.trim()).filter(Boolean);
       if (parts.length >= 2) {
-        const name = parts[0];
-        const qty = parseNumber(parts[1]);
+        const name = parts[0] ?? "";
+        const qty = parseNumber(parts[1] ?? "");
         const buyPrice = parts[2] ? parseNumber(parts[2]) : 0;
         const sellPrice = parts[3] ? parseNumber(parts[3]) : buyPrice;
         const product: Product = {
