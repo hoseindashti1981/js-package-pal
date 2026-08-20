@@ -94,6 +94,24 @@ export interface SalesInvoice {
   createdAt?: string;
 }
 
+export interface PurchaseInvoiceItem {
+  productId: number | null;
+  name: string;
+  qty: number;
+  price: number;
+}
+
+export interface PurchaseInvoice {
+  id?: number;
+  supplier?: string;
+  date: string;
+  items: PurchaseInvoiceItem[];
+  total: number;
+  paid: number;
+  note?: string;
+  createdAt?: string;
+}
+
 export interface CustomerPayment {
   id?: number;
   customerId: number;
