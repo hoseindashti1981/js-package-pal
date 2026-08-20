@@ -18,6 +18,7 @@ import { Route as RepairsRouteImport } from './routes/repairs'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,10 +65,15 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomersCustomerIdRoute = CustomersCustomerIdRouteImport.update({
+  id: '/$customerId',
+  path: '/$customerId',
+  getParentRoute: () => CustomersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
   '/inventory': typeof InventoryRoute
   '/payments': typeof PaymentsRoute
   '/purchases': typeof PurchasesRoute
@@ -75,10 +81,11 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
   '/inventory': typeof InventoryRoute
   '/payments': typeof PaymentsRoute
   '/purchases': typeof PurchasesRoute
@@ -86,11 +93,12 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
   '/inventory': typeof InventoryRoute
   '/payments': typeof PaymentsRoute
   '/purchases': typeof PurchasesRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/customers/$customerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/customers/$customerId'
   id:
     | '__root__'
     | '/'
@@ -133,11 +144,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/settings'
+    | '/customers/$customerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CustomersRoute: typeof CustomersRoute
+  CustomersRoute: typeof CustomersRouteWithChildren
   InventoryRoute: typeof InventoryRoute
   PaymentsRoute: typeof PaymentsRoute
   PurchasesRoute: typeof PurchasesRoute
@@ -212,12 +224,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customers/$customerId': {
+      id: '/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof CustomersCustomerIdRouteImport
+      parentRoute: typeof CustomersRoute
+    }
   }
 }
 
+interface CustomersRouteChildren {
+  CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
+}
+
+const CustomersRouteChildren: CustomersRouteChildren = {
+  CustomersCustomerIdRoute: CustomersCustomerIdRoute,
+}
+
+const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
+  CustomersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CustomersRoute: CustomersRoute,
+  CustomersRoute: CustomersRouteWithChildren,
   InventoryRoute: InventoryRoute,
   PaymentsRoute: PaymentsRoute,
   PurchasesRoute: PurchasesRoute,
