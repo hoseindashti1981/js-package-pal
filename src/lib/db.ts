@@ -33,6 +33,13 @@ export interface DeviceRec {
   createdAt?: string;
 }
 
+export interface RepairUsedPart {
+  productId: number;
+  name: string;
+  qty: number;
+  price: number;
+}
+
 export interface Repair {
   id?: number;
   customerId: number;
@@ -42,6 +49,7 @@ export interface Repair {
   action?: string;
   wage: number;
   partsCost: number;
+  usedParts?: RepairUsedPart[];
   status: "open" | "done" | "delivered";
   createdAt?: string;
 }
