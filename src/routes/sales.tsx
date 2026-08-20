@@ -120,7 +120,36 @@ function SalesPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney(inv.total)} · دریافتی {formatMoney(inv.paid)}</span>
-                <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="text-primary"
+                    onClick={() => {
+                      const printWindow = window.open("", "_blank");
+                      if (!printWindow) return;
+                      const customer = customers.find((c) => c.id === inv.customerId)?.name ?? "مشتری متفرقه";
+                      const rows = inv.items.map((i) => `<tr><td>${i.name}</td><td>${formatNumber(i.qty)}</td><td>${formatMoney(i.price)}</td><td>${formatMoney(i.qty * i.price)}</td></tr>`).join("");
+                      printWindow.document.write(`
+                        <html dir="rtl">
+                          <head><title>فاکتور فروش</title>
+                          <style>body{font-family:Tahoma,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:right}h2{margin-bottom:4px}.meta{margin:12px 0;color:#555}</style></head>
+                          <body>
+                            <h2>فاکتور فروش — پکیج‌یار</h2>
+                            <div class="meta">مشتری: ${customer} | تاریخ: ${inv.date}</div>
+                            <table><thead><tr><th>کالا</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr></thead><tbody>${rows}</tbody></table>
+                            <p><strong>جمع کل:</strong> ${formatMoney(inv.total)}</p>
+                            <p><strong>دریافتی:</strong> ${formatMoney(inv.paid)}</p>
+                            <p><strong>مانده:</strong> ${formatMoney(inv.total - inv.paid)}</p>
+                          </body>
+                        </html>
+                      `);
+                      printWindow.document.close();
+                      printWindow.print();
+                    }}
+                  >
+                    چاپ
+                  </button>
+                  <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                </div>
               </div>
             </div>
           ))}

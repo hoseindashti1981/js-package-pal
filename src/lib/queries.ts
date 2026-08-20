@@ -6,9 +6,12 @@ import {
   putRecord,
   type Customer,
   type CustomerPayment,
+  type DeviceRec,
   type Product,
+  type PurchaseInvoice,
   type Repair,
   type SalesInvoice,
+  type StockTransaction,
   type StoreName,
 } from "./db";
 
@@ -44,6 +47,9 @@ export function useRemove(store: StoreName) {
 export function useCustomers() {
   return useRows<Customer>("customers");
 }
+export function useDevices() {
+  return useRows<DeviceRec>("devices");
+}
 export function useProducts() {
   return useRows<Product>("products");
 }
@@ -53,8 +59,14 @@ export function useRepairs() {
 export function useSales() {
   return useRows<SalesInvoice>("salesInvoices");
 }
+export function usePurchases() {
+  return useRows<PurchaseInvoice>("purchaseInvoices");
+}
 export function usePayments() {
   return useRows<CustomerPayment>("customerPayments");
+}
+export function useStockTransactions() {
+  return useRows<StockTransaction>("stockTransactions");
 }
 
 export function customerBalance(
@@ -73,4 +85,10 @@ export function customerBalance(
     .filter((p) => p.customerId === customerId)
     .reduce((sum, p) => sum + (p.amount || 0), 0);
   return repairDebt + salesDebt - paid;
+}
+
+export function productStock(productId: number, transactions: StockTransaction[]): number {
+  return transactions
+    .filter((t) => t.productId === productId)
+    .reduce((sum, t) => sum + (t.type === "in" ? t.qty : -t.qty), 0);
 }
