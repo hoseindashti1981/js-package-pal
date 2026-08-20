@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
-import type { PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
+import type { Product, PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
 import { useProducts, usePurchases, useRemove, useSave, useSave as useSaveProduct } from "@/lib/queries";
 
