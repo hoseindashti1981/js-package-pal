@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { DB_NAME, DB_VERSION, exportAll, importAll } from "@/lib/db";
-import { todayJalali } from "@/lib/format";
+import { addRecord, DB_NAME, DB_VERSION, exportAll, importAll, type Product } from "@/lib/db";
+import { parseNumber, todayJalali } from "@/lib/format";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
