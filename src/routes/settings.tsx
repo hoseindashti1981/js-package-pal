@@ -24,6 +24,7 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
+  const mdRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [installable, setInstallable] = useState(false);
   const promptRef = useRef<{ prompt: () => void } | null>(null);
@@ -55,6 +56,37 @@ function SettingsPage() {
     await importAll(JSON.parse(text));
     await qc.invalidateQueries();
     setMessage("اطلاعات بازگردانی شد ✓");
+  };
+
+  const importMarkdown = async (file: File) => {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/);
+    let imported = 0;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("|")) continue;
+      const parts = trimmed.split("|").map((p) => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        const name = parts[0];
+        const qty = parseNumber(parts[1]);
+        const buyPrice = parts[2] ? parseNumber(parts[2]) : 0;
+        const sellPrice = parts[3] ? parseNumber(parts[3]) : buyPrice;
+        const product: Product = {
+          name,
+          code: "",
+          unit: "عدد",
+          qty: qty || 0,
+          minQty: 1,
+          buyPrice,
+          sellPrice,
+          createdAt: new Date().toISOString(),
+        };
+        await addRecord("products", product);
+        imported++;
+      }
+    }
+    await qc.invalidateQueries();
+    setMessage(`${imported} کالا از Markdown وارد شد ✓`);
   };
 
   return (
