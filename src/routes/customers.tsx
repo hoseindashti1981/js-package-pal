@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { Customer } from "@/lib/db";
@@ -75,10 +75,14 @@ function CustomersPage() {
             const balance = c.id ? customerBalance(c.id, repairs, sales, payments) : 0;
             return (
               <div key={c.id} className="flex items-center justify-between gap-3 p-3">
-                <div>
+                <Link
+                  to="/customers/$customerId"
+                  params={{ customerId: String(c.id) }}
+                  className="min-w-0 flex-1"
+                >
                   <div className="text-sm font-semibold">{c.name}</div>
                   <div className="text-xs text-muted-foreground">{c.phone || "بدون شماره"}</div>
-                </div>
+                </Link>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs ${balance > 0 ? "text-destructive" : "text-success"}`}>{formatMoney(balance)}</span>
                   <button className="text-xs text-muted-foreground" onClick={() => c.id && remove.mutate(c.id)}>حذف</button>
