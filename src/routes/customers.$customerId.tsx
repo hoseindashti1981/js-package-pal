@@ -69,7 +69,7 @@ function CustomerDetailPage() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!deviceForm.brand?.trim() && !deviceForm.model?.trim()) return;
-            saveDevice.mutate({ ...deviceForm, customerId: id, createdAt: new Date().toISOString() });
+            saveDevice.mutate({ ...deviceForm, customerId: id });
             setDeviceForm({ customerId: id, brand: "", model: "", serial: "", note: "" });
             setDeviceOpen(false);
           }}
@@ -78,10 +78,18 @@ function CustomerDetailPage() {
           <input className="py-field" placeholder="مدل" value={deviceForm.model} onChange={(e) => setDeviceForm({ ...deviceForm, model: e.target.value })} />
           <input className="py-field" placeholder="سریال" value={deviceForm.serial} onChange={(e) => setDeviceForm({ ...deviceForm, serial: e.target.value })} />
           <input className="py-field" placeholder="توضیحات" value={deviceForm.note} onChange={(e) => setDeviceForm({ ...deviceForm, note: e.target.value })} />
-          <button className="py-btn w-full" type="submit">ذخیره دستگاه</button>
+          <button className="py-btn w-full" type="submit">{deviceForm.id ? "ذخیره تغییرات" : "ذخیره دستگاه"}</button>
         </form>
       ) : (
-        <button className="py-btn py-btn-soft mb-3 w-full text-xs" onClick={() => setDeviceOpen(true)}>+ افزودن دستگاه</button>
+        <button
+          className="py-btn py-btn-soft mb-3 w-full text-xs"
+          onClick={() => {
+            setDeviceForm({ customerId: id, brand: "", model: "", serial: "", note: "" });
+            setDeviceOpen(true);
+          }}
+        >
+          + افزودن دستگاه
+        </button>
       )}
 
       {customerDevices.length === 0 ? (
