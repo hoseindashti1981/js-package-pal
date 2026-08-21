@@ -42,7 +42,13 @@ function CustomersPage() {
       title="مشتریان"
       subtitle={`${customers.length} مشتری ثبت شده`}
       action={
-        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+        <button
+          className="py-btn py-btn-accent"
+          onClick={() => {
+            setForm({ name: "", phone: "", address: "", note: "" });
+            setOpen((v) => !v);
+          }}
+        >
           {open ? "بستن" : "+ مشتری جدید"}
         </button>
       }
