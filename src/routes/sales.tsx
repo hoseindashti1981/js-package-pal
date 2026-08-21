@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { SalesInvoice, SalesInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
-import { useCustomers, useProducts, useRemove, useSales, useSave } from "@/lib/queries";
+import { useCustomers, useProducts, useRemove, useSales, useSave, useStockDeltas } from "@/lib/queries";
 
 export const Route = createFileRoute("/sales")({
   head: () => ({
