@@ -27,6 +27,7 @@ function SalesPage() {
   const { data: invoices = [] } = useSales();
   const save = useSave<SalesInvoice>("salesInvoices");
   const remove = useRemove("salesInvoices");
+  const stock = useStockDeltas();
 
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -44,6 +45,7 @@ function SalesPage() {
   const submit = () => {
     if (items.length === 0) return;
     save.mutate({ customerId, date: todayJalali(), items, total, paid });
+    stock.mutate(items.map((i) => ({ productId: i.productId, qty: -i.qty })));
     setItems([]);
     setPaid(0);
     setCustomerId(null);

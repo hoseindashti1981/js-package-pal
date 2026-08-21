@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { Product, Repair, RepairUsedPart } from "@/lib/db";
 import { formatMoney, parseNumber, todayJalali } from "@/lib/format";
-import { useCustomers, useProducts, useRemove, useRepairs, useSave } from "@/lib/queries";
+import { useCustomers, useProducts, useRemove, useRepairs, useSave, useStockDeltas } from "@/lib/queries";
 
 export const Route = createFileRoute("/repairs")({
   head: () => ({
@@ -38,6 +38,7 @@ function RepairsPage() {
   const save = useSave<Repair>("repairs");
   const saveProduct = useSave<Product>("products");
   const remove = useRemove("repairs");
+  const stock = useStockDeltas();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Repair>(emptyRepair);
 
