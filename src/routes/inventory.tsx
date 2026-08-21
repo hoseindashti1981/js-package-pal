@@ -67,12 +67,12 @@ function InventoryPage() {
           <div className="grid grid-cols-2 gap-2">
             <input className="py-field" placeholder="کد کالا" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
             <input className="py-field" placeholder="واحد" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
-            <input className="py-field" inputMode="numeric" placeholder="موجودی" onChange={(e) => setForm({ ...form, qty: parseNumber(e.target.value) })} />
-            <input className="py-field" inputMode="numeric" placeholder="حداقل موجودی" onChange={(e) => setForm({ ...form, minQty: parseNumber(e.target.value) })} />
-            <input className="py-field" inputMode="numeric" placeholder="قیمت خرید" onChange={(e) => setForm({ ...form, buyPrice: parseNumber(e.target.value) })} />
-            <input className="py-field" inputMode="numeric" placeholder="قیمت فروش" onChange={(e) => setForm({ ...form, sellPrice: parseNumber(e.target.value) })} />
+            <input className="py-field" inputMode="numeric" placeholder="موجودی" value={form.qty} onChange={(e) => setForm({ ...form, qty: parseNumber(e.target.value) })} />
+            <input className="py-field" inputMode="numeric" placeholder="حداقل موجودی" value={form.minQty} onChange={(e) => setForm({ ...form, minQty: parseNumber(e.target.value) })} />
+            <input className="py-field" inputMode="numeric" placeholder="قیمت خرید" value={form.buyPrice} onChange={(e) => setForm({ ...form, buyPrice: parseNumber(e.target.value) })} />
+            <input className="py-field" inputMode="numeric" placeholder="قیمت فروش" value={form.sellPrice} onChange={(e) => setForm({ ...form, sellPrice: parseNumber(e.target.value) })} />
           </div>
-          <button className="py-btn w-full" type="submit">ذخیره کالا</button>
+          <button className="py-btn w-full" type="submit">{form.id ? "ذخیره تغییرات" : "ذخیره کالا"}</button>
         </form>
       ) : null}
 
@@ -103,6 +103,15 @@ function InventoryPage() {
                   onClick={() => save.mutate({ ...p, qty: Math.max(0, (p.qty || 0) - 1) })}
                 >
                   −
+                </button>
+                <button
+                  className="text-primary"
+                  onClick={() => {
+                    setForm({ ...p });
+                    setOpen(true);
+                  }}
+                >
+                  ویرایش
                 </button>
                 <button className="text-muted-foreground" onClick={() => p.id && remove.mutate(p.id)}>حذف</button>
               </div>
