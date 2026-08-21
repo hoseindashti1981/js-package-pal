@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { DeviceRec } from "@/lib/db";
 import { formatMoney, todayJalali } from "@/lib/format";
-import { customerBalance, useCustomers, useDevices, usePayments, useRepairs, useSales, useSave } from "@/lib/queries";
+import { customerBalance, useCustomers, useDevices, usePayments, useRemove, useRepairs, useSales, useSave } from "@/lib/queries";
 
 export const Route = createFileRoute("/customers/$customerId")({
   head: () => ({
@@ -30,6 +30,7 @@ function CustomerDetailPage() {
   const sales = useSales().data ?? [];
   const payments = usePayments().data ?? [];
   const saveDevice = useSave<DeviceRec>("devices");
+  const removeDevice = useRemove("devices");
   const [deviceOpen, setDeviceOpen] = useState(false);
   const [deviceForm, setDeviceForm] = useState<DeviceRec>({ customerId: id, brand: "", model: "", serial: "", note: "" });
 
