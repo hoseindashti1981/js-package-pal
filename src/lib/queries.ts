@@ -87,6 +87,30 @@ export function customerBalance(
   return repairDebt + salesDebt - paid;
 }
 
+/** Apply +/- quantity changes to products in IndexedDB. */
+export async function applyStockDeltas(deltas: { productId?: number | null; qty: number }[]) {
+  if (deltas.length === 0) return;
+  const products = await getAll<Product>("products");
+  const map = new Map<number, Product>();
+  for (const d of deltas) {
+    if (!d.productId) continue;
+    const current = map.get(d.productId) ?? products.find((p) => p.id === d.productId);
+    if (!current) continue;
+    map.set(d.productId, { ...current, qty: Math.max(0, (current.qty || 0) + d.qty) });
+  }
+  for (const product of map.values()) {
+    await putRecord("products", product);
+  }
+}
+
+export function useStockDeltas() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (deltas: { productId?: number | null; qty: number }[]) => applyStockDeltas(deltas),
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
 export function productStock(productId: number, transactions: StockTransaction[]): number {
   return transactions
     .filter((t) => t.productId === productId)
