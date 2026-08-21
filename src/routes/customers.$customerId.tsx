@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { DeviceRec } from "@/lib/db";
 import { formatMoney, todayJalali } from "@/lib/format";
-import { customerBalance, useCustomers, useDevices, usePayments, useRepairs, useSales, useSave } from "@/lib/queries";
+import { customerBalance, useCustomers, useDevices, usePayments, useRemove, useRepairs, useSales, useSave } from "@/lib/queries";
 
 export const Route = createFileRoute("/customers/$customerId")({
   head: () => ({
@@ -30,6 +30,7 @@ function CustomerDetailPage() {
   const sales = useSales().data ?? [];
   const payments = usePayments().data ?? [];
   const saveDevice = useSave<DeviceRec>("devices");
+  const removeDevice = useRemove("devices");
   const [deviceOpen, setDeviceOpen] = useState(false);
   const [deviceForm, setDeviceForm] = useState<DeviceRec>({ customerId: id, brand: "", model: "", serial: "", note: "" });
 
@@ -68,7 +69,7 @@ function CustomerDetailPage() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!deviceForm.brand?.trim() && !deviceForm.model?.trim()) return;
-            saveDevice.mutate({ ...deviceForm, customerId: id, createdAt: new Date().toISOString() });
+            saveDevice.mutate({ ...deviceForm, customerId: id });
             setDeviceForm({ customerId: id, brand: "", model: "", serial: "", note: "" });
             setDeviceOpen(false);
           }}
@@ -77,10 +78,18 @@ function CustomerDetailPage() {
           <input className="py-field" placeholder="مدل" value={deviceForm.model} onChange={(e) => setDeviceForm({ ...deviceForm, model: e.target.value })} />
           <input className="py-field" placeholder="سریال" value={deviceForm.serial} onChange={(e) => setDeviceForm({ ...deviceForm, serial: e.target.value })} />
           <input className="py-field" placeholder="توضیحات" value={deviceForm.note} onChange={(e) => setDeviceForm({ ...deviceForm, note: e.target.value })} />
-          <button className="py-btn w-full" type="submit">ذخیره دستگاه</button>
+          <button className="py-btn w-full" type="submit">{deviceForm.id ? "ذخیره تغییرات" : "ذخیره دستگاه"}</button>
         </form>
       ) : (
-        <button className="py-btn py-btn-soft mb-3 w-full text-xs" onClick={() => setDeviceOpen(true)}>+ افزودن دستگاه</button>
+        <button
+          className="py-btn py-btn-soft mb-3 w-full text-xs"
+          onClick={() => {
+            setDeviceForm({ customerId: id, brand: "", model: "", serial: "", note: "" });
+            setDeviceOpen(true);
+          }}
+        >
+          + افزودن دستگاه
+        </button>
       )}
 
       {customerDevices.length === 0 ? (
@@ -88,9 +97,23 @@ function CustomerDetailPage() {
       ) : (
         <div className="py-card divide-y divide-border">
           {customerDevices.map((d) => (
-            <div key={d.id} className="p-3 text-sm">
-              <div className="font-semibold">{d.brand} {d.model}</div>
-              <div className="text-xs text-muted-foreground">سریال: {d.serial || "—"} · {d.note || "بدون توضیح"}</div>
+            <div key={d.id} className="flex items-start justify-between gap-2 p-3 text-sm">
+              <div>
+                <div className="font-semibold">{d.brand} {d.model}</div>
+                <div className="text-xs text-muted-foreground">سریال: {d.serial || "—"} · {d.note || "بدون توضیح"}</div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  className="text-primary"
+                  onClick={() => {
+                    setDeviceForm({ ...d });
+                    setDeviceOpen(true);
+                  }}
+                >
+                  ویرایش
+                </button>
+                <button className="text-muted-foreground" onClick={() => d.id && removeDevice.mutate(d.id)}>حذف</button>
+              </div>
             </div>
           ))}
         </div>
