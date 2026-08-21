@@ -115,6 +115,26 @@ function SettingsPage() {
         {message ? <p className="text-xs text-success">{message}</p> : null}
       </div>
 
+      <div className="py-card mt-4 space-y-2 p-4">
+        <h2 className="text-sm font-bold">📄 ورود کالا از Markdown</h2>
+        <p className="text-xs text-muted-foreground">
+          هر خط به شکل: نام کالا | تعداد | قیمت خرید | قیمت فروش
+        </p>
+        <button className="py-btn py-btn-soft w-full" onClick={() => mdRef.current?.click()}>
+          انتخاب فایل Markdown
+        </button>
+        <input
+          ref={mdRef}
+          type="file"
+          accept=".md,.markdown,.txt,text/markdown"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void importMarkdown(file);
+          }}
+        />
+      </div>
+
       {installable ? (
         <div className="py-card mt-4 space-y-2 p-4">
           <h2 className="text-sm font-bold">📲 نصب اپ</h2>

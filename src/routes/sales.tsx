@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { SalesInvoice, SalesInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
-import { useCustomers, useProducts, useRemove, useSales, useSave } from "@/lib/queries";
+import { useCustomers, useProducts, useRemove, useSales, useSave, useStockDeltas } from "@/lib/queries";
 
 export const Route = createFileRoute("/sales")({
   head: () => ({
@@ -27,6 +27,7 @@ function SalesPage() {
   const { data: invoices = [] } = useSales();
   const save = useSave<SalesInvoice>("salesInvoices");
   const remove = useRemove("salesInvoices");
+  const stock = useStockDeltas();
 
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -44,6 +45,7 @@ function SalesPage() {
   const submit = () => {
     if (items.length === 0) return;
     save.mutate({ customerId, date: todayJalali(), items, total, paid });
+    stock.mutate(items.map((i) => ({ productId: i.productId, qty: -i.qty })));
     setItems([]);
     setPaid(0);
     setCustomerId(null);
@@ -148,7 +150,16 @@ function SalesPage() {
                   >
                     چاپ
                   </button>
-                  <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                  <button
+                    className="text-muted-foreground"
+                    onClick={() => {
+                      if (!inv.id) return;
+                      stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: i.qty })));
+                      remove.mutate(inv.id);
+                    }}
+                  >
+                    حذف
+                  </button>
                 </div>
               </div>
             </div>

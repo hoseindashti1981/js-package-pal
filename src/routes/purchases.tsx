@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { Product, PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
-import { useProducts, usePurchases, useRemove, useSave, useSave as useSaveProduct } from "@/lib/queries";
+import { useProducts, usePurchases, useRemove, useSave, useSave as useSaveProduct, useStockDeltas } from "@/lib/queries";
 
 export const Route = createFileRoute("/purchases")({
   head: () => ({
@@ -27,6 +27,7 @@ function PurchasesPage() {
   const save = useSave<PurchaseInvoice>("purchaseInvoices");
   const saveProduct = useSaveProduct<Product>("products");
   const remove = useRemove("purchaseInvoices");
+  const stock = useStockDeltas();
 
   const [open, setOpen] = useState(false);
   const [supplier, setSupplier] = useState("");
@@ -123,7 +124,16 @@ function PurchasesPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney(inv.total)} · پرداختی {formatMoney(inv.paid)}</span>
-                <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                <button
+                  className="text-muted-foreground"
+                  onClick={() => {
+                    if (!inv.id) return;
+                    stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: -i.qty })));
+                    remove.mutate(inv.id);
+                  }}
+                >
+                  حذف
+                </button>
               </div>
             </div>
           ))}

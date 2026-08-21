@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import type { Product, Repair, RepairUsedPart } from "@/lib/db";
 import { formatMoney, parseNumber, todayJalali } from "@/lib/format";
-import { useCustomers, useProducts, useRemove, useRepairs, useSave } from "@/lib/queries";
+import { useCustomers, useProducts, useRemove, useRepairs, useSave, useStockDeltas } from "@/lib/queries";
 
 export const Route = createFileRoute("/repairs")({
   head: () => ({
@@ -38,6 +38,7 @@ function RepairsPage() {
   const save = useSave<Repair>("repairs");
   const saveProduct = useSave<Product>("products");
   const remove = useRemove("repairs");
+  const stock = useStockDeltas();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Repair>(emptyRepair);
 
@@ -148,7 +149,16 @@ function RepairsPage() {
               <div className="text-xs text-muted-foreground">{r.date} · {r.problem || "بدون توضیح"}</div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney((r.wage || 0) + (r.partsCost || 0))}</span>
-                <button className="text-muted-foreground" onClick={() => r.id && remove.mutate(r.id)}>حذف</button>
+                <button
+                  className="text-muted-foreground"
+                  onClick={() => {
+                    if (!r.id) return;
+                    stock.mutate((r.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty })));
+                    remove.mutate(r.id);
+                  }}
+                >
+                  حذف
+                </button>
               </div>
             </div>
           ))}
