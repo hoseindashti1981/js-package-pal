@@ -41,7 +41,13 @@ function InventoryPage() {
       title="انبار"
       subtitle={`${formatNumber(products.length)} کالا · موجودی ${formatNumber(totalQty)}`}
       action={
-        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+        <button
+          className="py-btn py-btn-accent"
+          onClick={() => {
+            setForm(emptyProduct());
+            setOpen((v) => !v);
+          }}
+        >
           {open ? "بستن" : "+ کالای جدید"}
         </button>
       }
