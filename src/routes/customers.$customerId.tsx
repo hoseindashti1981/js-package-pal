@@ -97,9 +97,23 @@ function CustomerDetailPage() {
       ) : (
         <div className="py-card divide-y divide-border">
           {customerDevices.map((d) => (
-            <div key={d.id} className="p-3 text-sm">
-              <div className="font-semibold">{d.brand} {d.model}</div>
-              <div className="text-xs text-muted-foreground">سریال: {d.serial || "—"} · {d.note || "بدون توضیح"}</div>
+            <div key={d.id} className="flex items-start justify-between gap-2 p-3 text-sm">
+              <div>
+                <div className="font-semibold">{d.brand} {d.model}</div>
+                <div className="text-xs text-muted-foreground">سریال: {d.serial || "—"} · {d.note || "بدون توضیح"}</div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  className="text-primary"
+                  onClick={() => {
+                    setDeviceForm({ ...d });
+                    setDeviceOpen(true);
+                  }}
+                >
+                  ویرایش
+                </button>
+                <button className="text-muted-foreground" onClick={() => d.id && removeDevice.mutate(d.id)}>حذف</button>
+              </div>
             </div>
           ))}
         </div>
