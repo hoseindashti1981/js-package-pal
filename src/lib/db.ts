@@ -28,6 +28,7 @@ export interface DeviceRec {
   customerId: number;
   brand?: string;
   model?: string;
+  type?: string;      
   serial?: string;
   note?: string;
   createdAt?: string;

@@ -43,7 +43,53 @@ export function useRemove(store: StoreName) {
     onSuccess: () => qc.invalidateQueries(),
   });
 }
+/** حذف مشتری همراه با دستگاه‌ها و تعمیرات مرتبط */
+export function useRemoveCustomer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (customerId: number) => {
+      const devices = await getAll<DeviceRec>("devices");
+      const repairs = await getAll<Repair>("repairs");
 
+      for (const d of devices) {
+        if (Number(d.customerId) === Number(customerId) && d.id != null) {
+          await deleteRecord("devices", d.id);
+        }
+      }
+      for (const r of repairs) {
+        if (Number(r.customerId) === Number(customerId) && r.id != null) {
+          await deleteRecord("repairs", r.id);
+        }
+      }
+      await deleteRecord("customers", customerId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries();
+    },
+  });
+}
+
+/** حذف دستگاه همراه با تعمیرات مرتبط */
+export function useRemoveDevice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (deviceId: number) => {
+      const repairs = await getAll<Repair>("repairs");
+      for (const r of repairs) {
+        // مقایسه عددی برای جلوگیری از mismatch رشته/عدد
+        if (Number(r.deviceId) === Number(deviceId) && r.id != null) {
+          await deleteRecord("repairs", r.id);
+        }
+      }
+      await deleteRecord("devices", deviceId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["devices"] });
+      qc.invalidateQueries({ queryKey: ["repairs"] });
+      qc.invalidateQueries();
+    },
+  });
+}
 export function useCustomers() {
   return useRows<Customer>("customers");
 }
