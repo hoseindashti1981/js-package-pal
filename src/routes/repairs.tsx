@@ -149,7 +149,16 @@ function RepairsPage() {
               <div className="text-xs text-muted-foreground">{r.date} · {r.problem || "بدون توضیح"}</div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney((r.wage || 0) + (r.partsCost || 0))}</span>
-                <button className="text-muted-foreground" onClick={() => r.id && remove.mutate(r.id)}>حذف</button>
+                <button
+                  className="text-muted-foreground"
+                  onClick={() => {
+                    if (!r.id) return;
+                    stock.mutate((r.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty })));
+                    remove.mutate(r.id);
+                  }}
+                >
+                  حذف
+                </button>
               </div>
             </div>
           ))}

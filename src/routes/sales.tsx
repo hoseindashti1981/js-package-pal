@@ -150,7 +150,16 @@ function SalesPage() {
                   >
                     چاپ
                   </button>
-                  <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                  <button
+                    className="text-muted-foreground"
+                    onClick={() => {
+                      if (!inv.id) return;
+                      stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: i.qty })));
+                      remove.mutate(inv.id);
+                    }}
+                  >
+                    حذف
+                  </button>
                 </div>
               </div>
             </div>

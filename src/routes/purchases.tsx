@@ -124,7 +124,16 @@ function PurchasesPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney(inv.total)} · پرداختی {formatMoney(inv.paid)}</span>
-                <button className="text-muted-foreground" onClick={() => inv.id && remove.mutate(inv.id)}>حذف</button>
+                <button
+                  className="text-muted-foreground"
+                  onClick={() => {
+                    if (!inv.id) return;
+                    stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: -i.qty })));
+                    remove.mutate(inv.id);
+                  }}
+                >
+                  حذف
+                </button>
               </div>
             </div>
           ))}
