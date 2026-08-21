@@ -61,7 +61,7 @@ function CustomersPage() {
           <input className="py-field" placeholder="نام و نام خانوادگی" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input className="py-field" placeholder="شماره تماس" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           <input className="py-field" placeholder="آدرس" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          <button className="py-btn w-full" type="submit">ذخیره مشتری</button>
+          <button className="py-btn w-full" type="submit">{form.id ? "ذخیره تغییرات" : "ذخیره مشتری"}</button>
         </form>
       ) : null}
 
@@ -85,6 +85,15 @@ function CustomersPage() {
                 </Link>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs ${balance > 0 ? "text-destructive" : "text-success"}`}>{formatMoney(balance)}</span>
+                  <button
+                    className="text-xs text-primary"
+                    onClick={() => {
+                      setForm({ ...c });
+                      setOpen(true);
+                    }}
+                  >
+                    ویرایش
+                  </button>
                   <button className="text-xs text-muted-foreground" onClick={() => c.id && remove.mutate(c.id)}>حذف</button>
                 </div>
               </div>
