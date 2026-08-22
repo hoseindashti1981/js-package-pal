@@ -83,9 +83,16 @@ function SalesPage() {
       title="فروش"
       subtitle={`${formatNumber(invoices.length)} فاکتور`}
       action={
-        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+        <button
+          className="py-btn py-btn-accent"
+          onClick={() => {
+            reset();
+            setOpen((v) => !v);
+          }}
+        >
           {open ? "بستن" : "+ فاکتور جدید"}
         </button>
+
       }
     >
       {open ? (
