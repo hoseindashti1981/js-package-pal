@@ -138,8 +138,9 @@ function SalesPage() {
             <span>جمع کل</span>
             <span>{formatMoney(total)}</span>
           </div>
-          <input className="py-field" inputMode="numeric" placeholder="مبلغ دریافتی" onChange={(e) => setPaid(parseNumber(e.target.value))} />
-          <button className="py-btn w-full" onClick={submit}>ثبت فاکتور</button>
+          <input className="py-field" inputMode="numeric" placeholder="مبلغ دریافتی" value={paid || ""} onChange={(e) => setPaid(parseNumber(e.target.value))} />
+          <button className="py-btn w-full" onClick={submit}>{editing ? "ذخیره تغییرات" : "ثبت فاکتور"}</button>
+
         </div>
       ) : null}
 
