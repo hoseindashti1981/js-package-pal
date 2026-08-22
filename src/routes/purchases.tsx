@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
-import type { Product, PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
+import type { PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
-import { useProducts, usePurchases, useRemove, useSave, useSave as useSaveProduct, useStockDeltas } from "@/lib/queries";
+import { useProducts, usePurchases, useRemove, useSave, useStockDeltas } from "@/lib/queries";
+
 
 export const Route = createFileRoute("/purchases")({
   head: () => ({
@@ -25,7 +26,6 @@ function PurchasesPage() {
   const products = useProducts().data ?? [];
   const { data: invoices = [] } = usePurchases();
   const save = useSave<PurchaseInvoice>("purchaseInvoices");
-  const saveProduct = useSaveProduct<Product>("products");
   const remove = useRemove("purchaseInvoices");
   const stock = useStockDeltas();
 
@@ -33,6 +33,7 @@ function PurchasesPage() {
   const [supplier, setSupplier] = useState("");
   const [paid, setPaid] = useState(0);
   const [items, setItems] = useState<PurchaseInvoiceItem[]>([]);
+  const [editing, setEditing] = useState<PurchaseInvoice | null>(null);
 
   const total = items.reduce((a, i) => a + i.qty * i.price, 0);
 
@@ -42,20 +43,37 @@ function PurchasesPage() {
     setItems((prev) => [...prev, { productId, name: product.name, qty: 1, price: product.buyPrice || 0 }]);
   };
 
-  const submit = () => {
-    if (items.length === 0) return;
-    save.mutate({ supplier, date: todayJalali(), items, total, paid });
-    for (const item of items) {
-      if (item.productId) {
-        const product = products.find((p) => p.id === item.productId);
-        if (product) {
-          saveProduct.mutate({ ...product, qty: (product.qty || 0) + item.qty });
-        }
-      }
-    }
+  const reset = () => {
     setItems([]);
     setPaid(0);
     setSupplier("");
+    setEditing(null);
+  };
+
+  const startEdit = (inv: PurchaseInvoice) => {
+    setEditing(inv);
+    setSupplier(inv.supplier ?? "");
+    setPaid(inv.paid || 0);
+    setItems(inv.items.map((i) => ({ ...i })));
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = () => {
+    if (items.length === 0) return;
+    save.mutate({
+      ...(editing ?? {}),
+      supplier,
+      date: editing?.date ?? todayJalali(),
+      items,
+      total,
+      paid,
+    });
+    stock.mutate([
+      ...(editing?.items ?? []).map((i) => ({ productId: i.productId, qty: -i.qty })),
+      ...items.map((i) => ({ productId: i.productId, qty: i.qty })),
+    ]);
+    reset();
     setOpen(false);
   };
 
@@ -64,11 +82,18 @@ function PurchasesPage() {
       title="فاکتور خرید"
       subtitle={`${formatNumber(invoices.length)} فاکتور خرید`}
       action={
-        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+        <button
+          className="py-btn py-btn-accent"
+          onClick={() => {
+            reset();
+            setOpen((v) => !v);
+          }}
+        >
           {open ? "بستن" : "+ خرید جدید"}
         </button>
       }
     >
+
       {open ? (
         <div className="py-card mb-4 space-y-2 p-4">
           <input className="py-field" placeholder="نام تأمین‌کننده" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
@@ -107,8 +132,9 @@ function PurchasesPage() {
             <span>جمع کل</span>
             <span>{formatMoney(total)}</span>
           </div>
-          <input className="py-field" inputMode="numeric" placeholder="مبلغ پرداختی" onChange={(e) => setPaid(parseNumber(e.target.value))} />
-          <button className="py-btn w-full" onClick={submit}>ثبت فاکتور خرید</button>
+          <input className="py-field" inputMode="numeric" placeholder="مبلغ پرداختی" value={paid || ""} onChange={(e) => setPaid(parseNumber(e.target.value))} />
+          <button className="py-btn w-full" onClick={submit}>{editing ? "ذخیره تغییرات" : "ثبت فاکتور خرید"}</button>
+
         </div>
       ) : null}
 
@@ -124,17 +150,21 @@ function PurchasesPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span>{formatMoney(inv.total)} · پرداختی {formatMoney(inv.paid)}</span>
-                <button
-                  className="text-muted-foreground"
-                  onClick={() => {
-                    if (!inv.id) return;
-                    stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: -i.qty })));
-                    remove.mutate(inv.id);
-                  }}
-                >
-                  حذف
-                </button>
+                <div className="flex items-center gap-3">
+                  <button className="text-primary" onClick={() => startEdit(inv)}>ویرایش</button>
+                  <button
+                    className="text-muted-foreground"
+                    onClick={() => {
+                      if (!inv.id) return;
+                      stock.mutate(inv.items.map((i) => ({ productId: i.productId, qty: -i.qty })));
+                      remove.mutate(inv.id);
+                    }}
+                  >
+                    حذف
+                  </button>
+                </div>
               </div>
+
             </div>
           ))}
         </div>

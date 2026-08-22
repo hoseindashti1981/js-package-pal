@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
-import type { Product, Repair } from "@/lib/db";
+import type { Repair } from "@/lib/db";
 import { formatMoney, parseNumber, todayJalali } from "@/lib/format";
 import {
   useCustomers,
@@ -10,7 +10,9 @@ import {
   useRemove,
   useRepairs,
   useSave,
+  useStockDeltas,
 } from "@/lib/queries";
+
 
 export const Route = createFileRoute("/repairs")({
   head: () => ({
@@ -54,11 +56,12 @@ function RepairsPage() {
   const products = useProducts().data ?? [];
   const { data: repairs = [] } = useRepairs();
   const save = useSave<Repair>("repairs");
-  const saveProduct = useSave<Product>("products");
   const remove = useRemove("repairs");
+  const stock = useStockDeltas();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Repair>(emptyRepair());
+  const [original, setOriginal] = useState<Repair | null>(null);
   const [wageText, setWageText] = useState("");
 
   const customerDevices = useMemo(
@@ -68,15 +71,26 @@ function RepairsPage() {
 
   function resetForm() {
     setForm(emptyRepair());
+    setOriginal(null);
     setWageText("");
+  }
+
+  function startEdit(r: Repair) {
+    setForm({ ...r, usedParts: (r.usedParts || []).map((p) => ({ ...p })) });
+    setOriginal(r);
+    setWageText(String(r.wage || ""));
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleDelete(r: Repair) {
     if (!r.id) return;
-    const ok = window.confirm("آیا از حذف این تعمیر مطمئن هستید؟\nموجودی قطعات مصرفی برنمی‌گردد.");
+    const ok = window.confirm("آیا از حذف این تعمیر مطمئن هستید؟\nموجودی قطعات مصرفی به انبار برمی‌گردد.");
     if (!ok) return;
+    stock.mutate((r.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty })));
     remove.mutate(r.id);
   }
+
 
   return (
     <AppShell
@@ -125,16 +139,13 @@ function RepairsPage() {
             };
             save.mutate(payload);
 
-            // کم کردن موجودی قطعات
-            for (const part of form.usedParts || []) {
-              const product = products.find((p) => p.id === part.productId);
-              if (product) {
-                saveProduct.mutate({
-                  ...product,
-                  qty: Math.max(0, (product.qty || 0) - part.qty),
-                });
-              }
-            }
+            // اصلاح تفاضلی موجودی: برگشت قطعات قبلی و کسر قطعات جدید
+            const deltas = [
+              ...((original?.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty }))),
+              ...((form.usedParts || []).map((p) => ({ productId: p.productId, qty: -p.qty }))),
+            ];
+            stock.mutate(deltas);
+
 
             resetForm();
             setOpen(false);
@@ -308,8 +319,9 @@ function RepairsPage() {
           </select>
 
           <button className="py-btn w-full" type="submit">
-            ذخیره تعمیر
+            {form.id ? "ذخیره تغییرات" : "ذخیره تعمیر"}
           </button>
+
         </form>
       ) : null}
 
@@ -340,14 +352,20 @@ function RepairsPage() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span>{formatMoney((r.wage || 0) + (r.partsCost || 0))}</span>
-                  <button
-                    type="button"
-                    className="text-muted-foreground"
-                    onClick={() => handleDelete(r)}
-                  >
-                    حذف
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button type="button" className="text-primary" onClick={() => startEdit(r)}>
+                      ویرایش
+                    </button>
+                    <button
+                      type="button"
+                      className="text-muted-foreground"
+                      onClick={() => handleDelete(r)}
+                    >
+                      حذف
+                    </button>
+                  </div>
                 </div>
+
               </div>
             );
           })}

@@ -33,6 +33,7 @@ function SalesPage() {
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [paid, setPaid] = useState(0);
   const [items, setItems] = useState<SalesInvoiceItem[]>([]);
+  const [editing, setEditing] = useState<SalesInvoice | null>(null);
 
   const total = items.reduce((a, i) => a + i.qty * i.price, 0);
 
@@ -42,24 +43,56 @@ function SalesPage() {
     setItems((prev) => [...prev, { productId, name: product.name, qty: 1, price: product.sellPrice || 0 }]);
   };
 
-  const submit = () => {
-    if (items.length === 0) return;
-    save.mutate({ customerId, date: todayJalali(), items, total, paid });
-    stock.mutate(items.map((i) => ({ productId: i.productId, qty: -i.qty })));
+  const reset = () => {
     setItems([]);
     setPaid(0);
     setCustomerId(null);
+    setEditing(null);
+  };
+
+  const startEdit = (inv: SalesInvoice) => {
+    setEditing(inv);
+    setCustomerId(inv.customerId ?? null);
+    setPaid(inv.paid || 0);
+    setItems(inv.items.map((i) => ({ ...i })));
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = () => {
+    if (items.length === 0) return;
+    save.mutate({
+      ...(editing ?? {}),
+      customerId,
+      date: editing?.date ?? todayJalali(),
+      items,
+      total,
+      paid,
+    });
+    stock.mutate([
+      ...(editing?.items ?? []).map((i) => ({ productId: i.productId, qty: i.qty })),
+      ...items.map((i) => ({ productId: i.productId, qty: -i.qty })),
+    ]);
+    reset();
     setOpen(false);
   };
+
 
   return (
     <AppShell
       title="فروش"
       subtitle={`${formatNumber(invoices.length)} فاکتور`}
       action={
-        <button className="py-btn py-btn-accent" onClick={() => setOpen((v) => !v)}>
+        <button
+          className="py-btn py-btn-accent"
+          onClick={() => {
+            reset();
+            setOpen((v) => !v);
+          }}
+        >
           {open ? "بستن" : "+ فاکتور جدید"}
         </button>
+
       }
     >
       {open ? (
@@ -105,8 +138,9 @@ function SalesPage() {
             <span>جمع کل</span>
             <span>{formatMoney(total)}</span>
           </div>
-          <input className="py-field" inputMode="numeric" placeholder="مبلغ دریافتی" onChange={(e) => setPaid(parseNumber(e.target.value))} />
-          <button className="py-btn w-full" onClick={submit}>ثبت فاکتور</button>
+          <input className="py-field" inputMode="numeric" placeholder="مبلغ دریافتی" value={paid || ""} onChange={(e) => setPaid(parseNumber(e.target.value))} />
+          <button className="py-btn w-full" onClick={submit}>{editing ? "ذخیره تغییرات" : "ثبت فاکتور"}</button>
+
         </div>
       ) : null}
 
@@ -150,7 +184,9 @@ function SalesPage() {
                   >
                     چاپ
                   </button>
+                  <button className="text-primary" onClick={() => startEdit(inv)}>ویرایش</button>
                   <button
+
                     className="text-muted-foreground"
                     onClick={() => {
                       if (!inv.id) return;
