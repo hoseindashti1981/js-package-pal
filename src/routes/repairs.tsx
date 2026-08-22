@@ -139,16 +139,13 @@ function RepairsPage() {
             };
             save.mutate(payload);
 
-            // کم کردن موجودی قطعات
-            for (const part of form.usedParts || []) {
-              const product = products.find((p) => p.id === part.productId);
-              if (product) {
-                saveProduct.mutate({
-                  ...product,
-                  qty: Math.max(0, (product.qty || 0) - part.qty),
-                });
-              }
-            }
+            // اصلاح تفاضلی موجودی: برگشت قطعات قبلی و کسر قطعات جدید
+            const deltas = [
+              ...((original?.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty }))),
+              ...((form.usedParts || []).map((p) => ({ productId: p.productId, qty: -p.qty }))),
+            ];
+            stock.mutate(deltas);
+
 
             resetForm();
             setOpen(false);
