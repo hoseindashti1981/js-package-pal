@@ -33,6 +33,7 @@ function SalesPage() {
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [paid, setPaid] = useState(0);
   const [items, setItems] = useState<SalesInvoiceItem[]>([]);
+  const [editing, setEditing] = useState<SalesInvoice | null>(null);
 
   const total = items.reduce((a, i) => a + i.qty * i.price, 0);
 
@@ -42,15 +43,40 @@ function SalesPage() {
     setItems((prev) => [...prev, { productId, name: product.name, qty: 1, price: product.sellPrice || 0 }]);
   };
 
-  const submit = () => {
-    if (items.length === 0) return;
-    save.mutate({ customerId, date: todayJalali(), items, total, paid });
-    stock.mutate(items.map((i) => ({ productId: i.productId, qty: -i.qty })));
+  const reset = () => {
     setItems([]);
     setPaid(0);
     setCustomerId(null);
+    setEditing(null);
+  };
+
+  const startEdit = (inv: SalesInvoice) => {
+    setEditing(inv);
+    setCustomerId(inv.customerId ?? null);
+    setPaid(inv.paid || 0);
+    setItems(inv.items.map((i) => ({ ...i })));
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = () => {
+    if (items.length === 0) return;
+    save.mutate({
+      ...(editing ?? {}),
+      customerId,
+      date: editing?.date ?? todayJalali(),
+      items,
+      total,
+      paid,
+    });
+    stock.mutate([
+      ...(editing?.items ?? []).map((i) => ({ productId: i.productId, qty: i.qty })),
+      ...items.map((i) => ({ productId: i.productId, qty: -i.qty })),
+    ]);
+    reset();
     setOpen(false);
   };
+
 
   return (
     <AppShell
