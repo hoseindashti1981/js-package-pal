@@ -56,11 +56,12 @@ function RepairsPage() {
   const products = useProducts().data ?? [];
   const { data: repairs = [] } = useRepairs();
   const save = useSave<Repair>("repairs");
-  const saveProduct = useSave<Product>("products");
   const remove = useRemove("repairs");
+  const stock = useStockDeltas();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Repair>(emptyRepair());
+  const [original, setOriginal] = useState<Repair | null>(null);
   const [wageText, setWageText] = useState("");
 
   const customerDevices = useMemo(
@@ -70,15 +71,26 @@ function RepairsPage() {
 
   function resetForm() {
     setForm(emptyRepair());
+    setOriginal(null);
     setWageText("");
+  }
+
+  function startEdit(r: Repair) {
+    setForm({ ...r, usedParts: (r.usedParts || []).map((p) => ({ ...p })) });
+    setOriginal(r);
+    setWageText(String(r.wage || ""));
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleDelete(r: Repair) {
     if (!r.id) return;
-    const ok = window.confirm("آیا از حذف این تعمیر مطمئن هستید؟\nموجودی قطعات مصرفی برنمی‌گردد.");
+    const ok = window.confirm("آیا از حذف این تعمیر مطمئن هستید؟\nموجودی قطعات مصرفی به انبار برمی‌گردد.");
     if (!ok) return;
+    stock.mutate((r.usedParts || []).map((p) => ({ productId: p.productId, qty: p.qty })));
     remove.mutate(r.id);
   }
+
 
   return (
     <AppShell
