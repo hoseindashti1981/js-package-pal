@@ -352,14 +352,20 @@ function RepairsPage() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span>{formatMoney((r.wage || 0) + (r.partsCost || 0))}</span>
-                  <button
-                    type="button"
-                    className="text-muted-foreground"
-                    onClick={() => handleDelete(r)}
-                  >
-                    حذف
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button type="button" className="text-primary" onClick={() => startEdit(r)}>
+                      ویرایش
+                    </button>
+                    <button
+                      type="button"
+                      className="text-muted-foreground"
+                      onClick={() => handleDelete(r)}
+                    >
+                      حذف
+                    </button>
+                  </div>
                 </div>
+
               </div>
             );
           })}
