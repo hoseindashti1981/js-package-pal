@@ -319,8 +319,9 @@ function RepairsPage() {
           </select>
 
           <button className="py-btn w-full" type="submit">
-            ذخیره تعمیر
+            {form.id ? "ذخیره تغییرات" : "ذخیره تعمیر"}
           </button>
+
         </form>
       ) : null}
 
