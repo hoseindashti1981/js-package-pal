@@ -132,8 +132,9 @@ function PurchasesPage() {
             <span>جمع کل</span>
             <span>{formatMoney(total)}</span>
           </div>
-          <input className="py-field" inputMode="numeric" placeholder="مبلغ پرداختی" onChange={(e) => setPaid(parseNumber(e.target.value))} />
-          <button className="py-btn w-full" onClick={submit}>ثبت فاکتور خرید</button>
+          <input className="py-field" inputMode="numeric" placeholder="مبلغ پرداختی" value={paid || ""} onChange={(e) => setPaid(parseNumber(e.target.value))} />
+          <button className="py-btn w-full" onClick={submit}>{editing ? "ذخیره تغییرات" : "ثبت فاکتور خرید"}</button>
+
         </div>
       ) : null}
 
