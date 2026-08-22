@@ -184,7 +184,9 @@ function SalesPage() {
                   >
                     چاپ
                   </button>
+                  <button className="text-primary" onClick={() => startEdit(inv)}>ویرایش</button>
                   <button
+
                     className="text-muted-foreground"
                     onClick={() => {
                       if (!inv.id) return;
