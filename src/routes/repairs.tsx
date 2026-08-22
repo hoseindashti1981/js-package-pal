@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
-import type { Product, Repair } from "@/lib/db";
+import type { Repair } from "@/lib/db";
 import { formatMoney, parseNumber, todayJalali } from "@/lib/format";
 import {
   useCustomers,
@@ -10,7 +10,9 @@ import {
   useRemove,
   useRepairs,
   useSave,
+  useStockDeltas,
 } from "@/lib/queries";
+
 
 export const Route = createFileRoute("/repairs")({
   head: () => ({
