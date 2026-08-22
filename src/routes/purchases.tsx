@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, EmptyState } from "@/components/AppShell";
-import type { Product, PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
+import type { PurchaseInvoice, PurchaseInvoiceItem } from "@/lib/db";
 import { formatMoney, formatNumber, parseNumber, todayJalali } from "@/lib/format";
-import { useProducts, usePurchases, useRemove, useSave, useSave as useSaveProduct, useStockDeltas } from "@/lib/queries";
+import { useProducts, usePurchases, useRemove, useSave, useStockDeltas } from "@/lib/queries";
+
 
 export const Route = createFileRoute("/purchases")({
   head: () => ({
